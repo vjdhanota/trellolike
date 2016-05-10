@@ -107,7 +107,7 @@ function upsert(kind, row) {
 
   var found = false;
 
-  if (row.id) {
+  if (! _.isUndefined(row.id)) {
     entity.rows = entity.rows.map(function(innerRow) {
       if (innerRow.id === row.id) {
         found = true;
