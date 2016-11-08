@@ -69,7 +69,7 @@ to it as you go through these tasks. Be creative!
     <br>See: `POST /api/lists/:id`.
  1. Implement `DELETE /api/lists/:id` **\[backend\]**
     <br>Create a new Express endpoint that takes a `DELETE` request and an `id`
-    and deletes a single list.  This endpoint should return `404 Bad Request`
+    and deletes a single list.  This endpoint should return `400 Bad Request`
     if list with `id` can't be found. 
     <br>See: function `storage.del(kind, id)` in `storage.js`
  1. Delete list **\[frontend\]**
