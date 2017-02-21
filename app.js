@@ -107,7 +107,7 @@ listApiRouter.post('/', function(req, resp, next) {
   }
 });
 
-// POST /api/lists/:id Update existsing list
+// POST /api/lists/:id Update existing list
 listApiRouter.post('/:id', function(req, resp, next) {
   var fields = getFields(LIST_FIELDS, req.body);
   fields.pos = parseInt(fields.pos);
