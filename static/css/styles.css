@@ -1,2 +1,11 @@
 /* Your CSS code here */
 /* This file is included on every page. */
+.list {
+  width: 270px;  
+  margin-left: 5px;
+}
+
+#lists {
+  list-style-type: none;  
+  display:flex;
+}

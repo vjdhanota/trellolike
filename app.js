@@ -103,7 +103,8 @@ listApiRouter.post('/', function(req, resp, next) {
     resp.status(400).end();
   } else {
     console.log('Create list', fields);
-    resp.json(storage.upsert('list', fields));
+    storage.upsert('list', fields)
+    resp.json(fields);
   }
 });
 

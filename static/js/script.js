@@ -2,6 +2,12 @@
 // Your client side JavaScript code goes here.
 // This file is included in every page.
 
+$('.add-list').click(() =>  {
+  createList('Hello', 1, ['Card 1',])
+    .then(() => loadLists())
+    .then((data) => displayLists(data));
+});
+
 // Example code for creating a list on the server
 function createList(name, pos, cards) {
   return $.ajax('/api/lists', {
@@ -21,20 +27,24 @@ function loadLists() {
 
 // Example code for displaying lists in the browser
 function displayLists(lists) {
+  // Re-render entire component on insertion of new list
+  $('#lists').empty();
   // Lists should be ordered based on their 'pos' field
   lists.rows = _.sortBy(lists.rows, 'pos');
   lists.rows.forEach(function(list) {
+    console.log(list.name);
     var curElem = $('<li>').text(list.name);
     if (list.cards) {
-      var innerUl = $('<ul>');
+      var innerUl = $('<ul  contenteditable="true" class="list list-group">');
       list.cards.forEach(function(card) {
-        innerUl.append($('<li>').text(card));
+        innerUl.append($('<li  contenteditable="true" class="list-group-item">').text(card));
       });
       curElem.append(innerUl);
     }
     $('#lists').append(curElem);
   });
 }
+
 
 loadLists()
   .then(function(data) {
