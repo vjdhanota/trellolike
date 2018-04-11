@@ -103,8 +103,7 @@ listApiRouter.post('/', function(req, resp, next) {
     resp.status(400).end();
   } else {
     console.log('Create list', fields);
-    storage.upsert('list', fields)
-    resp.json(fields);
+    resp.json(storage.upsert('list', fields));
   }
 });
 
@@ -112,6 +111,7 @@ listApiRouter.post('/', function(req, resp, next) {
 listApiRouter.post('/:id', function(req, resp, next) {
   var fields = getFields(LIST_FIELDS, req.body);
   fields.pos = parseInt(fields.pos);
+  fields.id = parseInt(req.params.id); //Make sure the ID is an integer
   if (! isValid(LIST_FIELDS, fields)) {
     resp.status(400).end();
   } else {

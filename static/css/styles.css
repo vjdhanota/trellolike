@@ -1,11 +1,33 @@
 /* Your CSS code here */
 /* This file is included on every page. */
-.list {
-  width: 270px;  
-  margin-left: 5px;
+
+/* Remove default browser styling on ul / li */
+/* IN A LARGER/REAL APPLICATION YOU WOULDN'T WANT TO OVERRIDE ALL ul/li  */
+#lists ul,li { 
+  list-style-type: none;
+  list-style-position:inside;
+}
+#lists {
+  display:flex;
 }
 
-#lists {
-  list-style-type: none;  
-  display:flex;
+/* Fixed width of lists for now... */
+.list {
+  width: 270px;   
+  margin-left: 10px;  
+}
+
+/* Make the inputs look like labels until they are clicked */
+.list-name, .edit-contents {
+  background:rgba(0,0,0,0);
+  border:none;
+  overflow: hidden;
+  width: 100%;
+  padding: 7px;  
+}
+
+
+/* Override bootstrap default list-group styling to make link for new card closer to container */
+.card-container {
+  margin-bottom: 5px !important;
 }
