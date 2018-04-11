@@ -120,6 +120,21 @@ listApiRouter.post('/:id', function(req, resp, next) {
   }
 });
 
+listApiRouter.delete('/:id', function(req, resp, next) {
+  let id = parseInt(req.params.id); //Make sure the ID is an integer
+  if(!id)
+    resp.status(400).end();
+  else {
+    console.log('Delete list with id:', id);
+    let deleted = storage.del('list', id);
+    if(! deleted) {
+      resp.status(400).end();      
+    } else {
+      resp.send(true);
+    }
+  }
+})
+
 // Start
 var port = process.env.PORT || 3000;
 app.listen(port);

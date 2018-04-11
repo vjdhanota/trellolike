@@ -9,21 +9,38 @@ $(document).on('click','.add-list', function(){
   .then(() => loadLists())
   .then((data) => displayLists(data));
 }) 
+
+//Handle the adding of a new list
+$(document).on('click','.delete-list', function(){
+  let id = $(this).parent('li').data('id');
+  deleteList(id)
+  .then(() => loadLists())
+  .then((data) => displayLists(data));
+}) 
+
 // Add a new card to an existing list
 $(document).on('click','.add-card', function(evt){
-  addCardToList(this.dataset.id);
+  let id = $(this).parent('li').data('id');
+  addCardToList(id);
+}) 
+
+// Delete a card from an existing list
+$(document).on('click','.delete-card', function(evt){
+  let contentIndex = $(this).parent('li').data('index');
+  let id = $(this).parent('li').data('id');
+  deleteCardFromList(id, contentIndex);
 }) 
 
 // Update the name of a list after it has been changed
 $(document).on('change','.list-name', function(evt){
   let newName = evt.target.value;
-  let id = this.dataset.id;
+  let id = $(this).parent('li').data('id');
   updateListName(id, newName);
 }) 
 $(document).on('change','.edit-contents', function(evt){
   let newContents = evt.target.value;  
-  let contentIndex = evt.target.dataset.index;
-  let id = this.dataset.id;  
+  let contentIndex = $(this).parent('li').data('index');
+  let id = $(this).parent('li').data('id');  
   updateCardContents(id, newContents, contentIndex);
 }) 
 // Highlight title/card contents on click - Better UX
@@ -67,16 +84,35 @@ function updateList(id, name, pos, cards) {
   })
 }
 
-//Add a generic card to the list with the given id
+function deleteList(id) {
+  return $.ajax(`/api/lists/${id}`, {
+    type: 'DELETE',
+  })
+}
+
+//Delete a list with the given id
 function addCardToList(id) {
   getList(id)
   .then(list => {
-    list.cards.push(`Card ${list.cards.length+1}`);
+    let newCards = list.cards !== undefined ? list.cards : [] // Handle an empty list
+    newCards.push(`Card ${newCards.length+1}`);
+    return updateList(id, list.name, list.pos, newCards);
+  })
+  .then(() => loadLists())
+  .then((data) => displayLists(data));
+}
+
+//Delete a card from the list with the given id at the given index
+function deleteCardFromList(id, deleteIndex) {
+  getList(id)
+  .then(list => {
+    list.cards.splice(parseInt(deleteIndex),1);
     return updateList(id, list.name, list.pos, list.cards);
   })
   .then(() => loadLists())
   .then((data) => displayLists(data));
 }
+
 
 //Update the name of a list
 function updateListName(id, newName) {
@@ -90,6 +126,7 @@ function updateListName(id, newName) {
 function updateCardContents(id, newContents, cardPos) {
   getList(id)
   .then(list => {
+    cardPos = parseInt(cardPos);
     list.cards[cardPos] = newContents;
     updateList(id, list.name, list.pos, list.cards);
   })
@@ -107,20 +144,25 @@ function displayLists(lists) {
   // Lists should be ordered based on their 'pos' field
   lists.rows = _.sortBy(lists.rows, 'pos');
   lists.rows.forEach(function(list) {
-    let name = $(`<input class="list-name" contenteditable="true" data-id="${list.id}">`).val(list.name);
-    let addButton = $(`<a href="#" class="add-card" data-id="${list.id}">`).text('Add a card...')
-    let curElem = $('<li class="list">').append(name)
+    let name = $(`<input class="list-name" contenteditable="true">`).val(list.name);
+    let deleteListButton = $(`<span class="delete-list">`).append($(`<i>`).text('✘'));    
+    let addButton = $(`<a href="#" class="add-card">`).text('Add a card...')
+    let curElem = $(`<li class="list" data-id="${list.id}">`).append(name).append(deleteListButton)
     if (list.cards) {
       let innerUl = $('<ul class="card-container list-group">');
       let cardIdx = 0;      
       list.cards.forEach(function(card) {
-        let innerContentText = $(`<input class="edit-contents" data-id="${list.id}" data-index=${cardIdx}>`);
+        let innerContentText = $(`<input class="edit-contents">`);
+        let deleteCardButton = $(`<span class="delete-card">`).append($(`<i>`).text('x'));
         innerContentText.val(card);
-        innerUl.append($('<li class="list-group-item" >').append(innerContentText));
+        innerUl.append($(`<li class="list-group-item" data-id="${list.id}" data-index="${cardIdx}">`).append(innerContentText).append(deleteCardButton));
         cardIdx++;
       });
       curElem.append(innerUl);
       curElem.append(addButton)
+    } else {
+      // Render an add button if there are no more cards
+      curElem.append(addButton)      
     }
     $('#lists').append(curElem);
   });
