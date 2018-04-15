@@ -119,6 +119,7 @@ function addCardToList(id) {
 
 //Move a card from one list to another - called by SortableJS onAdd method
 function moveCardToList(newId, newIndex, oldId, oldIndex, contents) {
+  console.log(newId, newIndex, oldId, oldIndex, contents)
   deleteCardFromList(oldId, oldIndex);
   getList(parseInt(newId))
     .then(list => {
@@ -163,7 +164,7 @@ function updateListName(id, newName) {
     })
 }
 
-//Update the name of a list
+//Update the text content of a card
 function updateCardContents(id, newContents, cardPos) {
   getList(parseInt(id))
     .then(list => {
@@ -240,7 +241,7 @@ function displayLists(lists) {
       // Element is dropped into the list from another list
       onAdd: function (/**Event*/evt) {
         let cardEl = evt.item;
-        let contents = $(cardEl).find('input').val();
+        let contents = $(cardEl).find('textarea').val();
         let oldListId = evt.from.dataset.id;
         let oldIndex = evt.oldIndex;
         let newListId = $(cardEl).parent('ul').data('id');
@@ -252,7 +253,6 @@ function displayLists(lists) {
         let listId = evt.from.dataset.id;
         let oldIndex = evt.oldIndex;
         let newIndex = evt.newIndex;
-        console.log()
         moveCardWithinList(listId, oldIndex, newIndex);
       }
     });
