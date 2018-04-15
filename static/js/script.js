@@ -119,7 +119,6 @@ function addCardToList(id) {
 
 //Move a card from one list to another - called by SortableJS onAdd method
 function moveCardToList(newId, newIndex, oldId, oldIndex, contents) {
-  console.log(newId, newIndex, oldId, oldIndex, contents)
   deleteCardFromList(oldId, oldIndex);
   getList(parseInt(newId))
     .then(list => {
