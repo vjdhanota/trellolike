@@ -2,13 +2,15 @@
 // Your client side JavaScript code goes here.
 // This file is included in every page.
 
-//Setup all event listeners
+
+
+/******************** Setup all event listeners *******************/
 //Handle the adding of a new list
 $(document).on('click','.add-list', function(){
   createList('Hello', 1, ['Card 1'])
   .then(() => loadLists())
   .then((data) => displayLists(data));
-}) 
+});
 
 //Handle the adding of a new list
 $(document).on('click','.delete-list', function(){
@@ -16,40 +18,42 @@ $(document).on('click','.delete-list', function(){
   deleteList(id)
   .then(() => loadLists())
   .then((data) => displayLists(data));
-}) 
+});
 
 // Add a new card to an existing list
 $(document).on('click','.add-card', function(evt){
   let id = $(this).parent('li').data('id');
   addCardToList(id);
-}) 
+});
 
 // Delete a card from an existing list
 $(document).on('click','.delete-card', function(evt){
   let contentIndex = $(this).parent('li').data('index');
   let id = $(this).parent('li').data('id');
   deleteCardFromList(id, contentIndex);
-}) 
+});
 
 // Update the name of a list after it has been changed
 $(document).on('change','.list-name', function(evt){
   let newName = evt.target.value;
   let id = $(this).parent('li').data('id');
   updateListName(id, newName);
-}) 
+});
 $(document).on('change','.edit-contents', function(evt){
   let newContents = evt.target.value;  
   let contentIndex = $(this).parent('li').data('index');
   let id = $(this).parent('li').data('id');  
   updateCardContents(id, newContents, contentIndex);
-}) 
+});
 // Highlight title/card contents on click - Better UX
 $(document).on('click','.list-name', function(){
   this.setSelectionRange(0, this.value.length);
-}) 
+});
 $(document).on('click','.edit-contents', function(){
   this.setSelectionRange(0, this.value.length);
-}) 
+});
+
+/***************************************************************/
 
 
 // Example code for creating a list on the server
@@ -93,43 +97,77 @@ function deleteList(id) {
 //Delete a list with the given id
 function addCardToList(id) {
   getList(id)
-  .then(list => {
-    let newCards = list.cards !== undefined ? list.cards : [] // Handle an empty list
-    newCards.push(`Card ${newCards.length+1}`);
-    return updateList(id, list.name, list.pos, newCards);
-  })
-  .then(() => loadLists())
-  .then((data) => displayLists(data));
+    .then(list => {
+      let newCards = list.cards !== undefined ? list.cards : []; // Handle an empty list
+      newCards.push(`Card ${newCards.length+1}`);
+      return updateList(id, list.name, list.pos, newCards);
+    })
+    .then(() => loadLists())
+    .then((data) => displayLists(data));
+}
+
+//Move a card from one list to another - called by SortableJS onAdd method
+function moveCardToList(newId, newIndex, oldId, oldIndex, contents) {
+  deleteCardFromList(oldId, oldIndex);
+  getList(parseInt(newId))
+    .then(list => {
+      let newCards = list.cards !== undefined ? list.cards : [];
+      newCards.splice(newIndex,0,contents);
+      return updateList(newId, list.name, list.pos, newCards);
+    })
+    .then(() => loadLists())
+    .then((data) => displayLists(data));
+}
+
+// Move a card's position within a list
+function moveCardWithinList(id, oldIndex, newIndex) {
+  getList(parseInt(id))
+    .then(list => {
+      let newCards = list.cards !== undefined ? list.cards : [];
+      arrayMove(newCards, oldIndex, newIndex);
+      return updateList(id, list.name, list.pos, newCards)
+    })
+    .then(() => loadLists())
+    .then((data) => displayLists(data));
+}
+
+//Utility function to let us shift order of cards within a list
+function arrayMove(arr, fromIndex, toIndex) {
+  var element = arr[fromIndex];
+  arr.splice(fromIndex, 1);
+  arr.splice(toIndex, 0, element);
 }
 
 //Delete a card from the list with the given id at the given index
 function deleteCardFromList(id, deleteIndex) {
   getList(id)
-  .then(list => {
-    list.cards.splice(parseInt(deleteIndex),1);
-    return updateList(id, list.name, list.pos, list.cards);
-  })
-  .then(() => loadLists())
-  .then((data) => displayLists(data));
+    .then(list => {
+      list.cards.splice(parseInt(deleteIndex),1);
+      return updateList(id, list.name, list.pos, list.cards);
+    })
+    .then(() => loadLists())
+    .then((data) => displayLists(data));
 }
 
 
 //Update the name of a list
 function updateListName(id, newName) {
   getList(id)
-  .then(list => {
-    updateList(id, newName, list.pos, list.cards);
-  })
+    .then(list => {
+      updateList(id, newName, list.pos, list.cards);
+    })
 }
 
 //Update the name of a list
 function updateCardContents(id, newContents, cardPos) {
   getList(id)
-  .then(list => {
-    cardPos = parseInt(cardPos);
-    list.cards[cardPos] = newContents;
-    updateList(id, list.name, list.pos, list.cards);
-  })
+    .then(list => {
+      cardPos = parseInt(cardPos);
+      list.cards[cardPos] = newContents;
+      updateList(id, list.name, list.pos, list.cards);
+    })
+    .then(() => loadLists())
+    .then((data) => displayLists(data));
 }
 
 // Example code for getting all `list`s from server
@@ -146,24 +184,54 @@ function displayLists(lists) {
   lists.rows.forEach(function(list) {
     let name = $(`<input class="list-name" contenteditable="true">`).val(list.name);
     let deleteListButton = $(`<span class="delete-list">`).append($(`<i>`).text('✘'));    
+    let titleWrapper = $(`<div class="titleWrapper">`).append(name).append(deleteListButton);    
     let addButton = $(`<a href="#" class="add-card">`).text('Add a card...')
-    let curElem = $(`<li class="list" data-id="${list.id}">`).append(name).append(deleteListButton)
+    let curElem = $(`<li class="list" data-id="${list.id}">`).append(titleWrapper)
     if (list.cards) {
-      let innerUl = $('<ul class="card-container list-group">');
+      let innerUl = $(`<ul class="card-container list-group" data-id="${list.id}">`);
+      //Make each list of cards draggable using the SortableJS library
+      let sortable = Sortable.create(innerUl[0], {
+        group: '.card-container',
+        handle: '.glyphicon-menu-hamburger',
+        animation: 150,
+        // Element is dropped into the list from another list
+        onAdd: function (/**Event*/evt) {
+          let cardEl = evt.item;
+          let contents = $(cardEl).find('input').val();
+          let oldListId = evt.from.dataset.id;
+          let oldIndex = evt.oldIndex;
+          let newListId = $(cardEl).parent('ul').data('id');
+          let newIndex = evt.newIndex;
+          moveCardToList(newListId, newIndex, oldListId, oldIndex, contents)
+        },
+        // Element is moved within the same list
+        onUpdate: function(evt) {
+          let listId = evt.from.dataset.id;
+          let oldIndex = evt.oldIndex;
+          let newIndex = evt.newIndex;
+          moveCardWithinList(listId, oldIndex, newIndex);
+        }
+      });
+      
       let cardIdx = 0;      
       list.cards.forEach(function(card) {
-        let innerContentText = $(`<input class="edit-contents">`);
+        let handle = $(`<span class="glyphicon glyphicon-menu-hamburger">`)
+        let innerContentText = $(`<input class="edit-contents">`).val(card);
         let deleteCardButton = $(`<span class="delete-card">`).append($(`<i>`).text('x'));
-        innerContentText.val(card);
-        innerUl.append($(`<li class="list-group-item" data-id="${list.id}" data-index="${cardIdx}">`).append(innerContentText).append(deleteCardButton));
+        innerUl
+          .append($(`<li class="list-group-item" data-id="${list.id}" data-index="${cardIdx}">`)
+          .append(handle)
+          .append(innerContentText)
+          .append(deleteCardButton));
+          
         cardIdx++;
       });
       curElem.append(innerUl);
-      curElem.append(addButton)
     } else {
-      // Render an add button if there are no more cards
-      curElem.append(addButton)      
-    }
+      curElem.append($('<ul>'))
+    } 
+    curElem.append(addButton)
+    
     $('#lists').append(curElem);
   });
 }

@@ -2,7 +2,6 @@
 /* This file is included on every page. */
 
 /* Remove default browser styling on ul / li */
-/* IN A LARGER/REAL APPLICATION YOU WOULDN'T WANT TO OVERRIDE ALL ul/li  */
 #lists ul,li { 
   list-style-type: none;
   list-style-position:inside;
@@ -23,7 +22,7 @@
   border:none;
   overflow: hidden;
   padding: 7px;  
-  width: 90%;
+  width: 85%;
 }
 
 
@@ -33,6 +32,10 @@
   padding: 5px;
 }
 
+.glyphicon-menu-hamburger {
+  cursor: move;
+  font-size: .75em;
+}
 
 /* Override bootstrap default list-group styling to make link for new card closer to container */
 .card-container {
