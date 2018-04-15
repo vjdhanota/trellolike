@@ -267,10 +267,6 @@ function displayLists(lists) {
     })
     $('#lists').append(curElem);
   });  
-  // Resize all textareas on rendering of the lists
-  // $("textarea").each(function () {
-  //     autoresize(this)
-  // });
 }
 
 loadLists()
